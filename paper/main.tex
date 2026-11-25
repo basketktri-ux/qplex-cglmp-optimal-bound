@@ -1,0 +1,468 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,left=2.5cm,right=2.5cm,top=2.2cm,bottom=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,enumitem}
+\setlength{\emergencystretch}{2em}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\usepackage[capitalize]{cleveref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\Tq}{T_{\star}}
+\newcommand{\tr}{\operatorname{Tr}}
+\newcommand{\re}{\operatorname{Re}}
+\newcommand{\qone}{\mathcal{Q}_1}
+\newcommand{\qab}{\mathcal{Q}_{1+AB}}
+\newcommand{\PSD}{\succeq}
+\hypersetup{pdftitle={The optimal three-outcome CGLMP value in the Gupta--Pienaar qplex model},
+ pdfauthor={Yusuf Kaan Öğüt, Claude Opus 5.5 (AI), OpenAI Codex (GPT-6.2 Astra, AI)}}
+\newcommand{\NBOX}{858}
+\title{The optimal three-outcome CGLMP value\\in the Gupta--Pienaar qplex model}
+\author{Yusuf Kaan \"{O}\u{g}\"{u}t\\[3pt]
+{\small Claude Opus 5.5 (Anthropic) and OpenAI Codex (GPT-6.2 Astra)}\\[-1pt]
+{\footnotesize AI contributors}}
+\date{Revised 25 November 2026}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Gupta and Pienaar exhibited a three-outcome Bell correlation with CGLMP score
+$2+2/\sqrt3$ in their $d=3$ qplex model and conjectured that it is optimal.
+We prove the upper bound for all priors and weights. Equality forces Alice's outcome weights to be uniform for both settings.
+For uniform weights and a flat prior, a Fourier reduction gives a four-dimensional
+projector certificate. A Gram-matrix construction places every such correlation in
+the macroscopically local set $\qone$ and gives the exact value
+$\max_{\qone} I_3=2+2/\sqrt3$. The maximising example lies outside the almost-quantum set.
+For biased weights we exhibit a rational qplex correlation and an integer matrix
+certifying that it lies outside $\qone$. The general upper bound follows from a separate
+computer-assisted proof. Fixed dual witnesses cover the four-dimensional weight domain,
+including a neighbourhood of the optimum where the dual multipliers vary quadratically.
+The accompanying verifier checks the witnesses in exact arithmetic using the Python standard library.
+\end{abstract}
+
+\section{Introduction}
+
+QBism reads quantum states as an agent's probability assignments and the Born rule as a normative
+coherence condition linking them~\cite{FMS2014,FuchsSchack2013}. Using a symmetric informationally complete (SIC)
+reference measurement~\cite{Renes2004}, a quantum state of a $d$-level system becomes a probability vector on
+$d^2$ outcomes, and the Born rule becomes the \emph{Urgleichung}~\cite{FuchsSchack2013}. The \emph{qplex}
+programme~\cite{Qplex2017} asks which geometric conditions on such probability vectors single out quantum theory.
+A qplex is a maximal set of probability vectors whose pairwise inner products lie in a fixed interval.
+Quantum state space in SIC coordinates is one example, the Hilbert qplex.
+
+Gupta and Pienaar~\cite{GuptaPienaar2026} studied bipartite correlations generated within this framework from the
+perspective of one agent (``Bob''), who conditions on the other agent's (``Alice's'') reported outcome.
+In the unbiased setting they recovered Tsirelson's CHSH bound~\cite{Tsirelson1980,CHSH1969}. For the three-outcome
+CGLMP inequality~\cite{CGLMP2002} with $d=3$ they found qplex correlations with
+$I_3 = 2+2/\sqrt3 \approx 3.1547$, conjecturing that this is optimal. For comparison, the local bound is 2, the
+no-signalling bound is 4~\cite{PopescuRohrlich1994,Barrett2007}, and the quantum maximum is
+$1+\sqrt{11/3}\approx 2.9149$~\cite{Acin2002,NPA2007,NPA2008}, proved analytically in Ref.~\cite{IoannouRosset2021}.
+The standard measurements on a maximally entangled qutrit pair give the smaller value $\approx2.8729$~\cite{Acin2002}.
+
+\paragraph{Results.}
+Write $\Tq=2+2/\sqrt3$. Sections~3 and~4 prove the unbiased upper bound and identify
+$\Tq$ with the maximum over $\qone$. The first-level value $3.1547$ was reported numerically
+in Table~1 of Ref.~\cite{NPA2008}. Section~5 compares the attaining example with the almost-quantum set.
+Section~6 establishes two properties of the full model. A biased correlation has no
+level-1 moment matrix (\cref{prop:biasedQ1}), yet the score of every correlation is at most
+$\Tq$ (\cref{thm:main}). Thus the two sets have the same maximum in this Bell direction,
+even though the qplex model also contains points outside $\qone$.
+
+\section{Setting}
+
+\subsection{The CGLMP expression}
+Alice and Bob each choose a setting $x,y\in\{0,1\}$ and obtain $a,b\in\mathbb{Z}_3$. Let
+$Q^{xy}_k := \Pr(a-b\equiv k\mid x,y)$. We use
+\begin{equation}\label{eq:I3}
+I_3 = (Q^{00}_0-Q^{00}_2) + (Q^{10}_2-Q^{10}_0) + (Q^{11}_0-Q^{11}_2) + (Q^{01}_0-Q^{01}_1),
+\end{equation}
+which is the CGLMP expression~\cite{CGLMP2002} for $d=3$ ($I_{2233}$ in Ref.~\cite{GuptaPienaar2026}).
+Ref.~\cite{GuptaPienaar2026} writes the classes as $a+b\equiv k$; with their explicit vectors this agrees with
+\eqref{eq:I3} after relabelling Bob's outcomes $b\mapsto -b$. (Using their vectors with the raw labels in the sum
+convention gives $Q^{xy}_k=1/3$ for all classes and $I_3=0$.) Local deterministic strategies give
+$I_3\in\{2,-1,-4\}$ (30, 48 and 3 of the 81 strategies), so the local bound is 2.
+
+\subsection{Qplexes}
+Let $d=3$ and let $\Delta$ be the probability simplex in $\mathbb{R}^9$. Following Ref.~\cite{Qplex2017},
+a \emph{germ} is a subset of $\Delta$ in which every pair (including a vector with itself) satisfies
+$\tfrac1{12}\le p\cdot q\le\tfrac16$; a \emph{qplex} is a maximal germ. For quantum states and a SIC,
+$\tr\rho\sigma = 12\,p\cdot q-1$, so the interval is $0\le\tr\rho\sigma\le1$. Bob's measurement with outcomes
+$b$ is described by weights $\gamma_b\ge0$ and normalised response vectors $v_b$ with $\sum_b\gamma_b v_b=c$,
+where $c=(1/9,\dots,1/9)$. The Urgleichung for $d=3$ reads
+$\Pr(b\mid p) = \sum_i [4p_i-\tfrac13]\, 9\gamma_b (v_b)_i = \gamma_b(36\,p\cdot v_b-3)$.
+
+\subsection{Bipartite qplex correlations}
+In the model of Ref.~\cite{GuptaPienaar2026}, Bob holds a prior $s$ in a qplex. Alice's setting $x$ and outcome $a$ (probability $\mu^x_a$) update Bob's state
+to $u^x_a$, with $\sum_a\mu^x_a u^x_a=s$ for both $x$ (no-signalling). The joint distribution is
+\begin{equation}\label{eq:joint}
+p(a,b\mid x,y) = \mu^x_a\,\gamma^y_b\,(36\,u^x_a\cdot v^y_b-3),
+\end{equation}
+where all $u^x_a$ and $v^y_b$ belong to one qplex. We call the box \emph{unbiased} if $\mu^x_a=\gamma^y_b=1/3$ and
+$s=c$.
+
+\subsection{Bloch coordinates}
+Put $n(p):=\sqrt{18}\,(p-c)$, so $p\cdot q=\tfrac19+\tfrac1{18}n(p)\cdot n(q)$. The germ conditions become
+\begin{equation}\label{eq:bloch}
+|n|\le1,\qquad n\cdot n'\ge-\tfrac12 ,
+\end{equation}
+and \eqref{eq:joint} becomes $p(a,b\mid x,y)=\mu^x_a\gamma^y_b\,(1+2A^x_a\cdot B^y_b)$ with
+$A^x_a=n(u^x_a)$, $B^y_b=n(v^y_b)$, $\sum_a\mu^x_aA^x_a=S:=n(s)$ and $\sum_b\gamma^y_bB^y_b=0$.
+The Gram-matrix upper bounds below allow arbitrary ambient dimension and omit SIC-coordinate
+non-negativity. Section~6 also relaxes Bob's norm bound. Each relaxation contains every admissible qplex realisation.
+
+\subsection{The Gupta--Pienaar example}
+With $\omega=e^{2\pi i/3}$, $h=\tfrac14[(1+\sqrt3)+i(1-\sqrt3)]$, $k=\tfrac12(-1+i)$ and
+$f_w(r,s)=\tfrac19[1+\re(w_0\omega^r+w_1\omega^s)]$ on $(r,s)\in\mathbb{Z}_3^2$, the vectors
+$u^0_a=f_{\omega^{-a}(1,0)}$, $u^1_a=f_{\omega^{-a}(0,1)}$, $v^0_b=f_{\omega^{-b}(h,k)}$, $v^1_b=f_{\omega^{-b}(\bar h,h)}$
+form a germ. Any germ extends to a maximal germ~\cite{Qplex2017}. With unbiased weights every setting pair has $(Q_+,Q_-)=(\eta,0)$, $\eta=\tfrac12(1+1/\sqrt3)$, so
+$I_3=4\eta=\Tq$.
+
+\section{Unbiased correlations}
+
+\begin{theorem}\label{thm:flat}
+Every unbiased qplex box satisfies $I_3\le\Tq$. More generally the bound holds for any vectors $A^x_a,B^y_b$ in a
+real inner-product space with $\sum_aA^x_a=\sum_bB^y_b=0$, $|A^x_a|,|B^y_b|\le1$ and
+$1+2A^x_a\cdot B^y_b\ge0$, with $p(a,b|x,y)=\tfrac19(1+2A^x_a\cdot B^y_b)$.
+\end{theorem}
+
+\begin{proof}
+Define complex vectors $\hat a_x=\tfrac{\sqrt2}{3}\sum_a\omega^aA^x_a$ and $\hat b_y=\tfrac{\sqrt2}{3}\sum_b\omega^bB^y_b$.
+Parseval and $\sum_aA^x_a=0$ give $\|\hat a_x\|^2=\tfrac13\sum_a|A^x_a|^2\le1$, and likewise for $\hat b_y$.
+A direct computation gives $\sum_k\omega^kQ^{xy}_k=\kappa_{xy}:=\langle\hat a_x,\hat b_y\rangle$ (Hermitian product,
+linear in the first slot), hence
+\[
+Q^{xy}_k=\tfrac13\bigl(1+2\re(\omega^{-k}\kappa_{xy})\bigr),\qquad
+I_3=\tfrac{2}{\sqrt3}\sum_{x,y}\re\bigl(e^{i\varphi_{xy}}\kappa_{xy}\bigr),
+\]
+with $\varphi_{00}=\varphi_{11}=-\pi/6$, $\varphi_{10}=5\pi/6$, $\varphi_{01}=\pi/6$. Positivity of the class sums is
+$\re(\omega^m\kappa_{xy})\ge-\tfrac12$ for $m\in\mathbb{Z}_3$. Let $K\PSD0$ be the $4\times4$ Hermitian Gram matrix of
+$(\hat a_0,\hat a_1,\hat b_0,\hat b_1)$, so $K_{ii}\le1$. Let $W$ be the Hermitian matrix with
+$\tr(WK)=\sum_{xy}\re(e^{i\varphi_{xy}}\kappa_{xy})$, and $E_{c}$ the Hermitian matrix with
+$\tr(E_cK)=\re(\omega^{m}\kappa_{xy})$ for the four constraints
+$c\in\{(\hat a_0,\hat b_0,1),(\hat a_0,\hat b_1,2),(\hat a_1,\hat b_0,0),(\hat a_1,\hat b_1,1)\}$. Set $\lambda=(\sqrt3-1)/2$ and use $h,k$ from Section~2.5. In the displayed ordering of the Gram vectors,
+\[
+Z=\tfrac12 I_4-W-\lambda\sum_c E_c
+=\tfrac12\begin{pmatrix}I_2&-D^\dagger\\-D&I_2\end{pmatrix},
+\qquad
+D=\begin{pmatrix}h&k\\ \bar h&h\end{pmatrix}.
+\]
+Indeed $D_{yx}=e^{i\varphi_{xy}}+\lambda\omega^{m_{xy}}$ for the four choices above.
+The identities $|h|^2=|k|^2=1/2$ and $h^2+k\bar h=0$ give $DD^\dagger=I_2$.
+It follows that $Z^2=Z$ and $\tr Z=2$. Thus $Z$ is a positive semidefinite projector of rank two.
+Taking its trace pairing with $K$ gives
+\[
+\sum_{x,y}\re(e^{i\varphi_{xy}}\kappa_{xy})
+\le\tfrac12\tr K+4\lambda/2\le 2+2\lambda=1+\sqrt3.
+\]
+Multiplication by $2/\sqrt3$ yields the bound. The example in Section~2.5 attains it.
+\end{proof}
+
+\begin{remark}[Scope of the Fourier bound]
+The proof uses neither non-negativity of SIC coordinates nor any Alice--Alice or Bob--Bob germ condition.
+Moreover, in Bloch-free form it only needs the Fourier norms $\|\hat a_x\|,\|\hat b_y\|\le1$. For biased boxes
+the same certificate, applied to the augmented Fourier vectors $\tilde A_x=\sum_a\omega^a\mu^x_a(1,\sqrt2A^x_a)$ and $\tilde B_y=\sum_b\omega^b\gamma^y_b(1,\sqrt2B^y_b)$ (whose Hermitian products are the Fourier coefficients of the class distributions), yields $\tfrac{\sqrt3}{2}I_3\le1+\sqrt3+2|S|^2-\tfrac32(o_A+o_B)$, where
+$o_A=\sum_x\sum_{a<a'}\mu^x_a\mu^x_{a'}(1+2A^x_a\cdot A^x_{a'})\ge0$ and $o_B$ is defined analogously.
+This proves $I_3\le\Tq$ whenever $4|S|^2\le3(o_A+o_B)$, but not in general (see \cref{sec:general}).
+\end{remark}
+
+\section{Macroscopic locality}
+
+$\qone$ is the set of no-signalling boxes admitting a level-1 NPA certificate~\cite{NPA2007,NPA2008}: a Gram
+representation of $\{\mathbf{1}\}\cup\{A_{a|x}\}\cup\{B_{b|y}\}$ with
+$\langle\mathbf{1},A_{a|x}\rangle=p(a|x)$, $\langle A_{a|x},A_{a'|x}\rangle=\delta_{aa'}p(a|x)$,
+$\langle A_{a|x},B_{b|y}\rangle=p(ab|xy)$, and similarly for Bob. Inner products between different settings of the
+same party are free. It coincides with the set of macroscopically local boxes~\cite{NavascuesWunderlich2010}.
+
+Write $I$ and $J$ for the $3\times3$ identity and all-ones matrices.
+\begin{lemma}[Gram completion for one measurement]\label{lem:pad}
+If $\sum_aA_a=0$ and $A_a\cdot A_{a'}\ge-\tfrac12$ for $a\ne a'$, then
+$\bigl[\tfrac29A_a\cdot A_{a'}\bigr]_{aa'}\preceq\tfrac13I-\tfrac19J$.
+\end{lemma}
+\begin{proof}
+The difference has zero row sums and off-diagonal entries $-\tfrac19(1+2A_a\cdot A_{a'})\le0$, so it is a graph
+Laplacian with non-negative weights.
+\end{proof}
+
+\begin{theorem}\label{thm:Q1member}
+Every unbiased qplex box lies in $\qone$.
+\end{theorem}
+\begin{proof}
+Use a common unit vector $e_0$ orthogonal to the Bloch space. Take $v_{\mathbf{1}}=e_0$ and
+$v_{A_{a|x}}=e_0/3+(\sqrt2/3)A^x_a+\pi^x_a$,
+$v_{B_{b|y}}=e_0/3+(\sqrt2/3)B^y_b+\pi'^y_b$, where the padding vectors $\pi$ live in mutually
+orthogonal fresh subspaces (one per measurement), sum to zero within each measurement, and have Gram matrix
+$\tfrac13I-\tfrac19J-[\tfrac29A_a\cdot A_{a'}]$ (positive semidefinite by \cref{lem:pad}). Then
+$\langle v_A,v_B\rangle=\tfrac19+\tfrac29A\cdot B=p(ab|xy)$ and all level-1 constraints hold. For the Gupta--Pienaar example the padding vanishes because
+distinct outcomes of each measurement have Bloch inner product $-1/2$ and each vector has unit norm.
+\end{proof}
+
+\begin{theorem}\label{thm:Q1max}
+$\max_{\qone}I_3=\Tq$.
+\end{theorem}
+\begin{proof}
+The example in Section~2.5 and \cref{thm:Q1member} give the lower bound. For the upper bound, $I_3$ is invariant under the joint relabelling
+$(a,b)\mapsto(a+1,b+1)$, which preserves $\qone$; averaging over this $\mathbb{Z}_3$ action makes all marginals
+uniform without changing $I_3$. For uniform marginals, a level-1 certificate yields centred vectors
+$\alpha_{a|x}=v_{A_{a|x}}-\tfrac13v_{\mathbf{1}}$ with $\sum_a\alpha_{a|x}=0$, within-setting Gram
+$\tfrac13I-\tfrac19J$ and $\alpha\cdot\beta=p-\tfrac19$. Here a real Gram representation suffices by taking real parts. Setting $A:=\tfrac3{\sqrt2}\alpha$ gives $|A|=1$ and
+$p=\tfrac19(1+2A\cdot B)\ge0$, so \cref{thm:flat} applies.
+\end{proof}
+
+\begin{remark}
+Table~1 of Ref.~\cite{NPA2008} gives the first-level value $3.1547$. If one omits
+$p(ab|xy)\ge0$ the level-1 SDP returns 4 (cf.\ the footnote in Ref.~\cite{NavascuesWunderlich2010}).
+Our SDP reproduces $3.1547005$ with positivity imposed.
+\end{remark}
+
+\begin{corollary}
+The optimal unbiased qplex value of $I_3$ equals the macroscopic-locality bound. Macroscopic locality therefore
+cannot exclude these qplex correlations.
+\end{corollary}
+
+\section{Almost-quantum correlations}
+
+\begin{proposition}\label{prop:aq}
+The Gupta--Pienaar box is not in the almost-quantum set $\qab$~\cite{AlmostQuantum2015}.
+\end{proposition}
+\begin{proof}
+The level-$1+AB$ sum-of-squares certificate of Ioannou and Rosset~\cite{IoannouRosset2021}
+bounds $I_3$ by $1+\sqrt{11/3}$ on $\qab$, below the value of the example.
+This agrees with the level-$1+AB$ result of Ref.~\cite{NPA2008}. The accompanying
+discovery code also rounds a numerical dual witness to rationals and checks positivity
+by exact elimination~\cite{PeyrlParrilo2008}, giving the sufficient bound $I_3<2.915$.
+\end{proof}
+
+\begin{remark}[Numerical visibility]
+Let $p_v=v p_{\rm GP}+(1-v)\mathbf{u}$, where $\mathbf{u}(a,b|x,y)=1/9$.
+The numerical visibility threshold for membership in $\qab$ is approximately $0.888889$,
+close to $8/9$. The CGLMP upper bound alone gives $v\le(1+\sqrt{11/3})/\Tq\approx0.924$.
+The exact visibility remains open here.
+\end{remark}
+
+\section{General weights}\label{sec:general}
+
+\begin{proposition}\label{prop:biasedQ1}
+There is a biased, exactly no-signalling qplex correlation outside $\qone$.
+One rational example has $I_3=391/144$.
+\end{proposition}
+\begin{proof}
+Take $\mu^0=\mu^1=(3/5,1/5,1/5)$, $\gamma^0=(1/3,1/3,1/3)$ and
+$\gamma^1=(3/8,5/16,5/16)$. Appendix~\ref{app:biased} specifies the twelve rational
+vectors. Their rows sum to one, their coordinates are positive, and their pairwise inner
+products, including self-pairs, satisfy
+\[
+ \frac1{12}<\frac{13547}{162000}\le u\cdot v\le\frac{2681}{16200}<\frac16
+ \qquad (u,v\text{ any two of the twelve vectors}).
+\]
+Their barycentres satisfy both equalities of Section~2, so \eqref{eq:joint} defines an
+exactly no-signalling qplex box.
+
+A level-1 representation would yield a positive semidefinite Gram matrix $\Gamma$
+for the unit vector and the first two outcomes of each of the four measurements.
+Only the blocks between distinct settings of one party are unspecified.
+The integer matrix $H$ in Appendix~\ref{app:biased} has zeros there and is positive definite.
+Substitution of the fixed entries gives $\tr(H\Gamma)=-1189/900$, contradicting
+$\tr(H\Gamma)\ge0$. Direct evaluation of \eqref{eq:I3} gives the stated score.
+\end{proof}
+The example was obtained by rationalising and perturbing a numerical candidate from the
+first draft. The earlier candidate had numerical white-noise visibility near $0.93188$. The exact separator applies to the rational coordinates in the appendix.
+Since $\qone$ membership fails in the full model, a separate upper-bound argument is required.
+
+\begin{theorem}[General CGLMP bound]\label{thm:main}
+For all weights $\mu^x_a,\gamma^y_b$, all priors $s$ and all germs, the qplex correlations \eqref{eq:joint} satisfy
+$I_3\le\Tq=2+2/\sqrt3$. The bound is attained. Equality requires $\mu^0=\mu^1=(1/3,1/3,1/3)$.
+\end{theorem}
+
+The proof has four steps.
+
+\paragraph{Step 1. Reduction to Alice's weights.}
+Introduce $e_0=(1,0)$ and homogenised vectors $\tilde a_{x,a}=\mu^x_a(1,\sqrt2A^x_a)$,
+$\tilde b_{y,b}=\gamma^y_b(1,\sqrt2B^y_b)$. Then $p(a,b|x,y)=\tilde a_{x,a}\cdot\tilde b_{y,b}$.
+All twelve vectors $u^x_a,v^y_b$ lie in one qplex, so $n\cdot n'\ge-\tfrac12$ holds for every pair of them,
+including pairs from different settings or parties. Hence
+$w\cdot w'\ge0$ for every pair of homogenised outcome vectors, Bob's normalisation becomes $\sum_b\tilde b_{y,b}=e_0$, no-signalling becomes
+$\sum_a\tilde a_{0,a}=\sum_a\tilde a_{1,a}$, and Alice's purity is $|\tilde a_{x,a}|^2\le3(\mu^x_a)^2$.
+Dropping Bob's norm bound gives an upper bound for every fixed $\mu=(\mu^0,\mu^1)$.
+With $X$ the $13\times13$ Gram matrix of $(e_0,\tilde a,\tilde b)$, define
+\begin{equation}\label{eq:Psi}
+\begin{aligned}
+\Psi(\mu)=\max\ &\textstyle\sum_{xy}\sum_a\bigl(X_{\tilde a_{x,a},\tilde b_{y,a-g_{xy}}}-X_{\tilde a_{x,a},\tilde b_{y,a-l_{xy}}}\bigr)\\
+\text{s.t. }&X\PSD0,\ X_{00}=1,\ X_{\tilde a_i,0}=\mu_i,\ X_{\tilde a_i\tilde a_i}\le3\mu_i^2,\ X_{ij}\ge0\ (1\le i<j),\\
+&X(\chi_{B_y}-e_0)=0\ (y=0,1),\quad X(\chi_{A_0}-\chi_{A_1})=0,
+\end{aligned}
+\end{equation}
+where $(g_{xy},l_{xy})$ are the plus and minus classes in \eqref{eq:I3}. In the last line,
+$\chi_{A_x},\chi_{B_y}\in\{0,1\}^{13}$ indicate the three rows of $X$ belonging to
+$\tilde a_{x,\cdot}$ and $\tilde b_{y,\cdot}$, and $e_0$ also denotes the indicator of the first row. Every qplex configuration with Alice
+weights $\mu$ is feasible, so $I_3\le\Psi(\mu)$. The reduction also covers zero weights
+because it only multiplies by the weights and never divides by them.
+
+\paragraph{Step 2. A parameter-free dual.}
+In \eqref{eq:Psi}, $\mu$ appears only on right-hand sides. Hence the dual feasible set $\mathcal D$ (vectors of
+multipliers $y$ with $Z(y):=\mathcal A(y)-C\PSD0$ and sign constraints) does not depend on $\mu$, and weak duality gives,
+for every $y\in\mathcal D$ and every $\mu$,
+\begin{equation}\label{eq:fy}
+\Psi(\mu)\le f_y(\mu):=y_{00}+\sum_i y_{A,i}\,\mu_i+3\sum_i z_{A,i}\,\mu_i^2,\qquad z_{A,i}\ge0 .
+\end{equation}
+For completeness, let $E_{ij}=(e_i e_j^\top+e_j e_i^\top)/2$ in $\mathbb R^{13}$,
+let $C$ be the symmetric objective matrix from \eqref{eq:Psi}, and let $t_1,t_2,t_3$ be the vectors
+for which the last line of \eqref{eq:Psi} requires $X t_j=0$. The slack used by the verifier is
+\[
+Z(y)=y_{00}E_{00}+\sum_{i=1}^6(y_{A,i}E_{i0}+z_{A,i}E_{ii})
+-\sum_{1\le i<j\le12}u_{ij}E_{ij}
+-\sum_{j=1}^3 (w_jt_j^\top+t_jw_j^\top)/2-C .
+\]
+Here $u_{ij},z_{A,i}\ge0$ and $w_j\in\mathbb R^{13}$ is free.
+Pairing with a feasible $X$ eliminates the three equality terms and gives \eqref{eq:fy}.
+Each $f_y$ is convex in $\mu$, so its maximum on any parameter box is attained at a vertex.
+
+\begin{remark}[Behaviour near the uniform point]
+The dual coefficients can be chosen separately for each weight vector. At the uniform
+point the constructed slack is singular. We use a quadratic family of multipliers to
+control the directions in its kernel as the weights vary.
+\end{remark}
+
+\paragraph{Step 3. Outer region.}
+Write $p=(\mu^0_0,\mu^0_1,\mu^1_0,\mu^1_1)$ for the four independent weights.
+Their domain is the subset of the unit four-cube satisfying
+$p_0+p_1\le1$ and $p_2+p_3\le1$. For each of \NBOX{} closed dyadic boxes, the supplement supplies a
+rational $y$. The verifier checks $u,z_A\ge0$, positive pivots for $Z(y)$, and
+$f_y(\mu_v)\le3154700538/10^9<\Tq$ at all 16 vertices. The largest vertex value is about
+$3.1546986$, roughly $2\cdot10^{-6}$ below $\Tq$. Convexity extends the bound to the whole box.
+
+The verifier reconstructs the subdivision from a $4^4$ grid, splitting the first longest edge
+at its midpoint. It checks that the boxes cover the interior of the weight domain apart from
+16 further boxes, each contained in $\|\mu-\bar\mu\|\le1/125$. Here $\bar\mu=(1/3,\ldots,1/3)$
+and the norm uses all six weights. Containment follows from the exact squared distances of the
+vertices. The finite union of these closed boxes also contains the boundary by closure.
+
+\paragraph{Step 4. A local certificate at the optimum.}
+Let $u=(1,-1,0)$, $v=(1,1,-2)$ and use the four tangent vectors
+$(u,0),(v,0),(0,u),(0,v)$ in that order. Write $\mu(\delta)=\bar\mu+\sum_i\delta_i\tau_i$,
+where $\tau_i$ denotes the $i$th vector. Take the quadratic family
+\[
+y(\delta)=y_0+Y_1\delta+\textstyle\sum_{i,j}\delta_i\delta_jY_{2,ij}.
+\]
+Because $\mathcal D$ is $\mu$-independent and $Z$ is affine in $y$, $Z(y(\delta))=\mathcal Z_0+\mathcal Z_1(\delta)+\mathcal Z_2(\delta)$ is
+exactly quadratic in $\delta$. The certificate supplies an invertible matrix $G$ over $\mathbb Q(\sqrt3)$ partitioned into eight and five columns. Write $\hat{\mathcal Z}=G^\top\mathcal ZG$ in $(pp,pk,kk)$ blocks.
+
+\begin{lemma}[Scaled congruence]\label{lem:scaled}
+Suppose $\hat{\mathcal Z}_0=\operatorname{diag}(Z_{0p},0)$ and $\hat{\mathcal Z}_{1,kk}\equiv0$.
+Form the block matrices $\widetilde W=[\hat{\mathcal Z}_{1,i,pk}]_i$ and
+$\widetilde K=[\hat{\mathcal Z}_{2,ij,kk}]_{ij}$. Assume
+\[
+ \begin{pmatrix} Z_{0p}&\widetilde W\\ \widetilde W^\top&\widetilde K\end{pmatrix}
+ \succeq m_0I.
+\] Let
+$e_1,e_2,b_2$ bound $\|\hat{\mathcal Z}_{1,pp}(d)\|$, $\|\hat{\mathcal Z}_{2,pp}(d)\|$ and
+$\|\hat{\mathcal Z}_{2,pk}(d)\|$, respectively, for $|d|=1$. Then
+$Z(y(\delta))\succ0$ whenever $0<|\delta|=\rho$ and $m_0>\rho(e_1+b_2)+\rho^2e_2$.
+\end{lemma}
+\begin{proof}
+With $S_\rho=\operatorname{diag}(I_8,\rho^{-1}I_5)$ and $\delta=\rho d$,
+$S_\rho^\top\hat{\mathcal Z}(\rho d)S_\rho=M_0(d)+\rho M_1(d)+\rho^2M_2(d)$ with
+$M_0(d)=\begin{psmallmatrix}Z_{0p}&\hat{\mathcal Z}_{1,pk}(d)\\ \cdot&\hat{\mathcal Z}_{2,kk}(d)\end{psmallmatrix}$.
+Testing the hypothesis matrix on vectors $(x,d\otimes z)$ shows $M_0(d)\succeq m_0I$ for $|d|=1$, while
+$\|M_1(d)\|\le e_1+b_2$ and $\|M_2(d)\|\le e_2$.
+\end{proof}
+
+Let $R=1/125$. The file \texttt{local.json} supplies $G,y_0,Y_1,Y_2$.
+The verifier checks that $G$ is invertible (via $G^\top G\succeq I/2$), the kernel blocks in
+\cref{lem:scaled} vanish, and the unshifted $28\times28$ block matrix has margin $m_0=7/50$.
+For $f(\delta)=f_{y(\delta)}(\mu(\delta))$, it checks $f(0)=\Tq$, zero linear term,
+and $-Q\succeq cI$ with $c=7/25$, where $\delta^\top Q\delta$ is the quadratic term.
+The cubic and quartic terms are bounded in magnitude by $r_3|\delta|^3$ and $r_4|\delta|^4$.
+The following upper estimates all hold in exact arithmetic:
+\[
+ e_1\le11,\qquad e_2\le5,\qquad b_2\le1/50,\qquad r_3\le26,\qquad r_4\le16.
+\]
+In particular, $R(11+1/50)+5R^2<7/50$ and $26R+16R^2<7/25$. The second inequality gives $f(\delta)<\Tq$ whenever $0<|\delta|\le R$.
+Thus $Z(y(\delta))\succeq0$ and $f(\delta)\le\Tq$ for $|\delta|\le R$.
+For each sign-constrained multiplier that vanishes at the centre, the linear term vanishes and
+the quadratic coefficient matrix is positive definite. For each remaining multiplier, its
+positive constant exceeds the sum of the worst-case linear and quadratic variations on this ball.
+These tests establish dual feasibility throughout the ball.
+
+For the two eigenvalue margins the verifier rounds each entry of the exact symmetric matrix
+to a rational grid and confirms an absolute error at most $10^{-7}$ by exact comparisons in
+$\mathbb Q(\sqrt3)$. For an $n\times n$ matrix this bounds the operator norm of the error by
+$n\,10^{-7}$. Rational elimination on the shifted matrix proves the required lower bound.
+For the remainder estimates, entrywise rational enclosures give Frobenius bounds on the
+coefficient tensors. Finally,
+\[
+ \|\mu-\bar\mu\|^2=2\delta_1^2+6\delta_2^2+2\delta_3^2+6\delta_4^2\ge 2|\delta|^2 .
+\]
+The local certificate therefore covers the entire weight-space ball of radius $\sqrt2/125$,
+including the 16 inner boxes of Step~3.
+
+\begin{proof}[Proof of \cref{thm:main}]
+Step~1 gives $I_3\le\Psi(\mu)$. The outer boxes have a strict upper bound below $\Tq$.
+In the inner boxes, Step~4 gives a strict upper bound whenever $\delta\ne0$.
+Thus equality requires uniform Alice weights. The example in Section~2.5 attains equality.
+\end{proof}
+
+\paragraph{Numerical exploration.}
+The original search also found nearly two-outcome weight vectors with scores around $3.10610$,
+for instance with $\mu^0\approx(0.4445,0.5555,0)$. These observations were used to explore
+the weight domain before constructing the global certificate.
+
+\section{Discussion}
+
+For the Gupta--Pienaar single-system construction, qplex geometry and macroscopic locality
+give the same maximum of $I_3$. The rational example in \cref{prop:biasedQ1} clarifies the
+scope of that equality. Its CGLMP value is $391/144\approx2.7153$, below both maxima,
+but its fixed marginal and joint probabilities preclude a level-1 Gram matrix. The CGLMP
+score alone cannot detect this failure of macroscopic locality.
+
+The Gupta--Pienaar maximiser also distinguishes $\qone$ from $\qab$ in this scenario.
+Whether local orthogonality~\cite{Fritz2013} or information causality~\cite{Pawlowski2009}
+excludes this particular box is a separate question. Multi-outcome information-causality
+criteria~\cite{Gachechiladze2022} provide possible tests.
+Table~1 of Ref.~\cite{NPA2008} gives a first-level bound of approximately $3.2126$ for
+$d=4$. Whether the corresponding qplex model attains it remains open here. So does the
+construction of a composite-system qplex realising the correlations considered in this paper.
+
+\section*{Contributions}
+Yusuf Kaan Öğüt posed the optimality problem, directed the investigation, chose to include
+arbitrary weights, and takes responsibility for the manuscript. Claude Opus 5.5 (Anthropic)
+produced the first draft, the initial proofs, the computational search and its code under his direction.
+OpenAI Codex (GPT-6.2 Astra) reviewed the arguments, implemented and ran a separate checker
+for the fixed certificates using the original quadratic-field arithmetic, derived the projector
+form of the unbiased certificate, constructed the rational biased example and its separating
+matrix, and revised the manuscript. Both named systems are credited as AI contributors.
+
+\section*{Code and data availability}
+The supplement includes the fixed witnesses, a verifier using the Python standard library,
+and the original search programs. Numerical discovery used NumPy~\cite{NumPy2020},
+SciPy~\cite{SciPy2020} and CVXPY~\cite{CVXPY2016} with Clarabel~\cite{Clarabel2024}
+and SCS~\cite{SCS2016}.
+
+\appendix
+\section{Checking the certificates}\label{app:repro}
+From the root of the supplement, run
+\begin{center}\texttt{python3 certificate/verify.py}\end{center}
+with Python 3.9 or later. The verifier evaluates the example attaining $\Tq$, checks the rational
+separator in Appendix~\ref{app:biased}, reconstructs each outer slack and all 16 vertex
+values, and verifies the local polynomial certificate. The checker rebuilds the matrices
+from the Bell coefficients and the equalities in \eqref{eq:Psi}. The data files in
+\texttt{certificate/} are \texttt{biased.json} (twelve states and a separating matrix),
+\texttt{boxes.json} (dyadic leaves and rational dual multipliers) and \texttt{local.json}
+(change of basis and quadratic dual coefficients). They contain rational numbers or pairs of
+rationals representing $a+b\sqrt3$, so no optimisation solver is needed.
+
+
+\clearpage
+\input{biased-example}
+
+\clearpage
+\bibliographystyle{unsrt}
+\bibliography{refs}
+
+\end{document}
